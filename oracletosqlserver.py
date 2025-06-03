@@ -54,9 +54,9 @@ logger = setup_logger()
 def migrate_data():
 
     # Oracle数据库连接配置
-    oracle_user = 'XYJT2025'
-    oracle_password = 'XYJT2025'
-    oracle_dsn = cx_Oracle.makedsn('192.168.100.60', 1521, service_name='xyjt')
+    oracle_user = 'XYJT2022'
+    oracle_password = 'XYJT2022'
+    oracle_dsn = cx_Oracle.makedsn('192.168.100.6', 1521, service_name='xyjteas')
 
     # SQL Server连接配置
     sql_server_driver = '{ODBC Driver 17 for SQL Server}' #'{SQL Server}'  # 或者使用 '{ODBC Driver 17 for SQL Server}'
