@@ -3,54 +3,56 @@ import pyodbc
 import pandas as pd
 from datetime import datetime
 import logging
+import os
+import sys
 from logging.handlers import TimedRotatingFileHandler
 
 # ---------------------- 日志配置 ----------------------
-def setup_logger(log_file_prefix="migration_log", log_level=logging.INFO, backup_count=30):
+def setup_logger(log_dir=None, log_level=logging.INFO, log_prefix="migration"):
     """
-    设置日志记录器，配置按日期分割的日志文件和控制台输出
+    设置日志记录器
 
     参数:
-        log_file_prefix: 日志文件名前缀
+        log_dir: 日志文件存储目录，如果为None则使用当前工作目录
         log_level: 日志级别，默认为INFO
-        backup_count: 保留的历史日志文件数量
+        log_prefix: 日志文件名前缀，默认为"migration"
     """
-    # 生成按日期分割的日志文件
-    log_file = f"{log_file_prefix}_{datetime.now().strftime('%Y%m%d')}.log"
+    # 如果未指定目录，使用当前工作目录
+    if log_dir is None:
+        log_dir = os.getcwd()
 
-    # 创建logger
-    logger = logging.getLogger(__name__)
+    # 确保目录存在
+    os.makedirs(log_dir, exist_ok=True)
+
+    # 构建日志文件名
+    log_file = os.path.join(log_dir, f"{log_prefix}_log_{datetime.now().strftime('%Y%m%d')}.log")
+
+    # 配置日志记录器
+    logger = logging.getLogger('migration_logger')
     logger.setLevel(log_level)
 
-    # 确保没有重复的处理器
-    if logger.handlers:
-        logger.handlers.clear()
+    # 创建文件处理器
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(log_level)
 
-    # 日志格式：时间 - 级别 - 模块名 - 消息
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(module)s - %(message)s')
-
-    # 控制台处理器
+    # 创建控制台处理器
     console_handler = logging.StreamHandler()
+    console_handler.setLevel(log_level)
+
+    # 创建格式化器并添加到处理器
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
     console_handler.setFormatter(formatter)
 
-    # 文件处理器（按天分割日志）
-    file_handler = TimedRotatingFileHandler(
-        log_file,
-        when='midnight',  # 每天午夜分割日志
-        interval=1,
-        backupCount=backup_count,  # 保留的历史日志数量
-        encoding='utf-8'
-    )
-    file_handler.setFormatter(formatter)
-
-    # 添加处理器到logger
-    logger.addHandler(console_handler)
+    # 添加处理器到日志记录器
     logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+
     return logger
 # ---------------------- 日志配置 ---结束-------------------
 
-# 设置全局日志记录器
-logger = setup_logger()
+# # 设置全局日志记录器
+# logger = setup_logger()
 def migrate_data():
 
     # Oracle数据库连接配置
@@ -155,4 +157,6 @@ def migrate_data():
 
 
 if __name__ == "__main__":
+    log_dir = sys.argv[1] if len(sys.argv) > 1 else None
+    logger = setup_logger(log_dir)
     migrate_data()
