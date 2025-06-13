@@ -82,7 +82,7 @@ def migrate_data():
         # print("成功连接到SQL Server")
         logger.info("成功连接到SQL Server")
         # 要迁移的表列表
-        tables_to_migrate = ['T_PM_User', 'T_ORG_BASEUNIT']
+        tables_to_migrate = ['T_PM_User', 'T_ORG_BASEUNIT','T_BD_Person']
 
         for table in tables_to_migrate:
             logger.info(f"\n开始迁移表 {table}...")
@@ -98,7 +98,11 @@ def migrate_data():
             logger.info(f"从Oracle查询表 {table} 数据...")
             # 从Oracle获取数据
             oracle_cursor = oracle_conn.cursor()
-            oracle_cursor.execute(f"SELECT FID,FNAME_L2,FNUMBER FROM {table}")
+            if table == 'T_BD_Person':
+                oracle_cursor.execute(f"select FID, FNUMBER,FNAME_L2,FCELL  from {table}")
+            else:
+                oracle_cursor.execute(f"SELECT FID,FNAME_L2,FNUMBER FROM {table}")
+
             columns = [desc[0] for desc in oracle_cursor.description]
             data = oracle_cursor.fetchall()
             oracle_cursor.close()
